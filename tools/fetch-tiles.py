@@ -109,7 +109,7 @@ def main():
     db.commit()
     size = Path(a.out).stat().st_size / 1e6
     print(f"done: {done - failed} tiles stored, {failed} missing, {size:.0f} MB", flush=True)
-    return 0 if failed < len(todo) * 0.05 else 1
+    return 0 if failed <= len(todo) * 0.05 else 1
 
 
 if __name__ == "__main__":

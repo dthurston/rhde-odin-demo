@@ -27,7 +27,10 @@ fetch() {
     say "offline map tiles -> tiles/$TILESET.mbtiles"
     python3 tools/fetch-tiles.py --out "tiles/$TILESET.mbtiles"
     say "pre-pull build images"
-    for img in "$RHEL_BOOTC" "$BIB_IMAGE" registry.access.redhat.com/ubi10/ubi:latest; do podman pull "$img"; done
+    # Only pull what is missing: a newer RHEL base would force a full edge-base rebuild
+    for img in "$RHEL_BOOTC" "$BIB_IMAGE" registry.access.redhat.com/ubi10/ubi:latest; do
+        podman image exists "$img" || podman pull "$img"
+    done
 }
 
 base() {
