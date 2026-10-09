@@ -61,7 +61,7 @@ sudo ssh -i /root/.ssh/edge_demo root@10.10.10.11 bootc status
 ```
 
 ## 4. One-time ODIN configuration (on each laptop, while it's C2)
-ODIN keeps its settings in `/var/home/operator`, and that survives every image switch, so you only do this once per laptop.
+ODIN keeps its settings in `/var/home/edgeop`, and that survives every image switch, so you only do this once per laptop.
 1. **Offline map:** press `Ctrl+N` then `T` and enter the URL `http://10.10.10.1:8000/services`. Tick `ao`, then select it under Background Maps (`Ctrl+Shift+T`). Turn off the default online OSM layer.
 2. **Live ISR tracks:** click **+**, choose *Create Live Data Source*, enter the URL `http://10.10.10.1:8080/live/tracks`, keep the event type `message`, enable *Track features by ID*, and tick to connect.
 3. Zoom to Fort Irwin / NTC (35.26 N, 116.68 W). Optionally draw a few friendly units, a phase line and an objective so the map looks like a real plan.
@@ -98,7 +98,7 @@ Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on 
 | Symptom | Fix |
 |---|---|
 | Laptop card stuck **OFFLINE** | Check the cable or switch. `ping 10.10.10.11`. On the laptop console, log in as `admin` and run `sudo bootc status`. |
-| ODIN window doesn't appear | The kiosk retries with `--no-sandbox` automatically. On the laptop, run `journalctl --user -b` as operator. Make sure `/usr/lib/odin/odin-launch` exists. |
+| ODIN window doesn't appear | The kiosk retries with `--no-sandbox` automatically. On the laptop, run `journalctl --user -b` as edgeop. Make sure `/usr/lib/odin/odin-launch` exists. |
 | Map is blank in ODIN | Run `curl http://10.10.10.1:8000/services` on the tablet. Is `tiles/ao.mbtiles` present? Re-add the tile service in ODIN. |
 | ISR console says NO LINK | Run `systemctl status edge-command` on the tablet and check that firewall port 8080 is open. |
 | DDIL buttons error | Run `lsmod | grep netem`. If it's missing: `dnf install kernel-modules-extra && modprobe sch_netem`. Also check that `LAN_IFACE` in demo.env is correct. |

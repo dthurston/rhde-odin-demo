@@ -15,10 +15,10 @@ RUN dnf -y install \
     && dnf clean all \
     && rm -rf /var/cache/dnf /var/log/dnf* /var/lib/dnf
 
-# Kiosk operator. Home lives in /var (persists across image switches);
+# Kiosk user "edgeop" (RHEL already has a system account named "operator"). Home lives in /var (persists across image switches);
 # tmpfiles.d creates it at boot, so no /var content ships in the image.
-RUN useradd --uid 1000 --no-create-home --home-dir /var/home/operator --comment "Edge Operator" operator \
-    && passwd -d operator
+RUN useradd --uid 1000 --no-create-home --home-dir /var/home/edgeop --comment "Edge Operator" edgeop \
+    && passwd -d edgeop
 
 COPY files/ /
 

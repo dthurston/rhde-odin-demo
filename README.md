@@ -121,7 +121,7 @@ Both laptops should also show **ONLINE** at `http://10.10.10.1:8080`.
 
 ### 4. Configure ODIN (once per laptop)
 
-ODIN's settings live in `/var/home/operator`, which persists across every image switch. On each laptop, while it's in the C2 role:
+ODIN's settings live in `/var/home/edgeop`, which persists across every image switch. On each laptop, while it's in the C2 role:
 
 1. **Offline basemap:** press `Ctrl+N`, then `T`. Enter the URL `http://10.10.10.1:8000/services`, tick **ao**, and select it under Background Maps (`Ctrl+Shift+T`). Disable the default online layer.
 2. **Live ISR tracks:** click **+**, choose **Create Live Data Source**, and enter the URL `http://10.10.10.1:8080/live/tracks`. Use event type `message`, enable *Track features by ID*, and tick to connect.
@@ -205,7 +205,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | Symptom | Fix |
 |---|---|
 | Laptop card stuck **OFFLINE** | Check the cable or switch. Run `ping 10.10.10.11`. On the laptop console, log in as `admin` and run `sudo bootc status`. |
-| ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `operator` user. |
+| ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `edgeop` user. |
 | Blank map in ODIN | Run `curl http://10.10.10.1:8000/services` and confirm `tiles/ao.mbtiles` exists. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |
 | DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `demo.env`. |
