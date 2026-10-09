@@ -79,6 +79,8 @@ registry.redhat.io/rhel10/rhel-bootc
    - Opens the dashboard full screen when you log in.
    - Copies the project to `/opt/edge-demo`.
 
+   The builds run from that copy. To pick up later changes, run `git pull` in your clone and re-run `setup-tablet.sh`. It's safe to re-run and keeps your SSH key. For a single changed file, copying it over with `sudo cp <file> /opt/edge-demo/<file>` is enough.
+
 ### 2. Build the images (online)
 
 ```bash
@@ -98,6 +100,8 @@ sudo ./build.sh all
 
 > ⚠️ **Build `edge-base` once.** Rebuilding it changes every layer digest, and the laptops then re-download the whole OS.
 
+> ℹ️ Each image ends with `bootc container lint`. Expect **warnings** about `sysusers`, `var-tmpfiles` and `var-log`. They come from package leftovers in `/var` and from users defined in `/etc/passwd`, and they're harmless here. Only a lint **error** stops the build.
+
 Optional dry run in a VM before touching the laptops:
 ```bash
 sudo ./build.sh qcow2      # output/vm/qcow2/disk.qcow2 — boots straight into ODIN
@@ -111,6 +115,8 @@ sudo ./build.sh iso edge-a 10.10.10.11
 sudo ./build.sh iso edge-b 10.10.10.12
 sudo dd if=output/edge-a/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
+Each ISO takes about 10–20 minutes and prints a full verbose log. `build.sh` passes `--progress=verbose` because bootc-image-builder's progress bar can crash with `bufio.Scanner: token too long`. The ISO is ready when the script lists `output/<name>/bootiso/install.iso`.
+
 Boot each laptop from its USB stick (UEFI; Secure Boot can stay on). The install is hands-off and **erases the disk**. Each laptop comes up auto-logged-in as the **C2** role, tracking `10.10.10.1:5000/demo/c2:latest`.
 
 Check from the tablet:
