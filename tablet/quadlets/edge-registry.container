@@ -1,0 +1,16 @@
+# Local OCI registry the laptops pull their OS images from
+[Unit]
+Description=Edge demo container registry (:5000)
+
+[Container]
+Image=docker.io/library/registry:2
+ContainerName=edge-registry
+PublishPort=5000:5000
+Volume=/var/lib/edge-registry:/var/lib/registry:Z
+Environment=REGISTRY_STORAGE_DELETE_ENABLED=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

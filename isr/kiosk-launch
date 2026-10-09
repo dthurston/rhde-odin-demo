@@ -1,0 +1,6 @@
+#!/bin/bash
+# ISR role: sensor console full screen, restart if it exits.
+while true; do
+    firefox --kiosk --private-window file:///usr/share/edge-demo/isr/index.html
+    sleep 2
+done

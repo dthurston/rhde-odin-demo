@@ -1,0 +1,34 @@
+# Mission role: C2 Workstation (ODINv2 command & control map)
+ARG BASE=localhost/edge-base:latest
+
+# --- unpack the ODIN AppImage (fetched by ./build.sh fetch into c2/vendor/) ---
+FROM registry.access.redhat.com/ubi10/ubi:latest AS odin
+ARG ODIN_VERSION=3.3.0
+COPY vendor/ODINv2-${ODIN_VERSION}.AppImage /tmp/odin.AppImage
+RUN cd /tmp && chmod +x odin.AppImage && ./odin.AppImage --appimage-extract >/dev/null \
+    && mv squashfs-root /odin
+
+# --- role image ---
+FROM ${BASE}
+
+# Big ODIN layer first and version-independent, so v1.0 -> v1.1 reuses it
+COPY --from=odin /odin /usr/lib/odin
+# Electron's setuid sandbox helper; find the main binary whatever electron-builder named it
+RUN chown root:root /usr/lib/odin/chrome-sandbox && chmod 4755 /usr/lib/odin/chrome-sandbox \
+    && for n in odin-v2 ODINv2 odinv2; do \
+         if [ -x "/usr/lib/odin/$n" ]; then ln -sf "$n" /usr/lib/odin/odin-launch; break; fi; \
+       done \
+    && test -x /usr/lib/odin/odin-launch
+
+ARG VERSION=1.0
+ARG TABLET_IP=10.10.10.1
+COPY kiosk-launch /usr/libexec/edge-demo/kiosk-launch
+RUN chmod 0755 /usr/libexec/edge-demo/kiosk-launch \
+    && echo "c2 ${VERSION}" > /usr/share/edge-demo/role \
+    && echo "TABLET_IP=${TABLET_IP}" > /usr/share/edge-demo/c2.env
+
+LABEL org.opencontainers.image.title="C2 Workstation (ODINv2)" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.edge-demo.role="c2"
+
+RUN bootc container lint

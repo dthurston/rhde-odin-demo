@@ -1,0 +1,22 @@
+# Mission role: ISR Sensor Node (simulated EO/IR + GMTI feed, forwards tracks to C2)
+ARG BASE=localhost/edge-base:latest
+FROM ${BASE}
+ARG VERSION=1.0
+ARG TABLET_IP=10.10.10.1
+ARG TILESET=ao
+# 1.0 = red sweep, 1.1 = amber sweep: a visible change for the "push an update" beat
+ARG ACCENT=#ee0000
+
+COPY app/ /usr/share/edge-demo/isr/
+COPY kiosk-launch /usr/libexec/edge-demo/kiosk-launch
+RUN chmod 0755 /usr/libexec/edge-demo/kiosk-launch \
+    && echo "isr ${VERSION}" > /usr/share/edge-demo/role \
+    && printf 'window.ISR_CONFIG = { version: "%s", accent: "%s", hub: "http://%s:8080", tiles: "http://%s:8080/tiles/%s/{z}/{x}/{y}" };\n' \
+         "${VERSION}" "${ACCENT}" "${TABLET_IP}" "${TABLET_IP}" "${TILESET}" \
+         > /usr/share/edge-demo/isr/config.js
+
+LABEL org.opencontainers.image.title="ISR Sensor Node" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.edge-demo.role="isr"
+
+RUN bootc container lint

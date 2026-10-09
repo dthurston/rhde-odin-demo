@@ -1,0 +1,39 @@
+# Edge node base image: RHEL image mode + GNOME Kiosk autologin.
+# Both mission-role images (c2, isr) build FROM this, so a role swap only
+# pulls the role's own layers -- the OS layers are already on the disk.
+ARG BASE_IMAGE=registry.redhat.io/rhel10/rhel-bootc:10.0
+FROM ${BASE_IMAGE}
+
+ARG REGISTRY=10.10.10.1:5000
+
+RUN dnf -y install \
+        gdm gnome-kiosk gnome-kiosk-script-session \
+        firefox \
+        redhat-display-fonts redhat-text-fonts redhat-mono-fonts google-noto-sans-fonts \
+        gtk3 nss alsa-lib libxkbcommon libdrm mesa-dri-drivers mesa-libgbm cups-libs at-spi2-core xdg-utils \
+        NetworkManager-wifi linux-firmware \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf /var/log/dnf* /var/lib/dnf
+
+# Kiosk operator. Home lives in /var (persists across image switches);
+# tmpfiles.d creates it at boot, so no /var content ships in the image.
+RUN useradd --uid 1000 --no-create-home --home-dir /var/home/operator --comment "Edge Operator" operator \
+    && passwd -d operator
+
+COPY files/ /
+
+# Tablet's registry is plain HTTP on an isolated LAN
+RUN printf '[[registry]]\nlocation = "%s"\ninsecure = true\n' "${REGISTRY}" \
+        > /etc/containers/registries.conf.d/50-edge-demo.conf \
+    && echo "${REGISTRY}" > /usr/share/edge-demo/registry
+
+RUN chmod 0755 /usr/libexec/edge-demo/* \
+    && dconf update \
+    && systemctl set-default graphical.target \
+    && systemctl enable gdm.service sshd.service \
+    && systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+
+LABEL org.opencontainers.image.title="Edge Node Base" \
+      org.opencontainers.image.vendor="RHEL Device Edge demo"
+
+RUN bootc container lint

@@ -1,0 +1,7 @@
+# Build outputs and big downloads (recreated by ./build.sh fetch / iso)
+output/
+tiles/*.mbtiles
+c2/vendor/*.AppImage
+# Generated per tablet by tablet/setup-tablet.sh
+base/files/usr/ssh/root.keys
+__pycache__/

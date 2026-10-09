@@ -1,0 +1,16 @@
+# bootc-image-builder config for an unattended laptop install.
+# Rendered by ./build.sh iso <hostname> <ip> -- do not edit the rendered copy.
+[customizations.installer.kickstart]
+contents = """
+text --non-interactive
+lang en_US.UTF-8
+keyboard us
+timezone UTC --utc
+zerombr
+clearpart --all --initlabel --disklabel=gpt
+autopart --noswap --type=lvm
+network --bootproto=static --device=link --activate --onboot=yes --ip=@IP@ --netmask=@NETMASK@ --gateway=@GATEWAY@ --nameserver=@GATEWAY@ --hostname=@HOST@ --noipv6
+rootpw --lock
+user --name=admin --groups=wheel --password=@ADMIN_PW@ --plaintext
+reboot --eject
+"""

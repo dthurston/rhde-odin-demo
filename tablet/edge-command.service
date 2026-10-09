@@ -1,0 +1,14 @@
+[Unit]
+Description=Edge Command dashboard (:8080)
+After=network-online.target edge-registry.service
+Wants=network-online.target
+
+[Service]
+Environment=DEMO_ENV=/opt/edge-demo/demo.env
+Environment=TILES_DIR=/opt/edge-demo/tiles
+ExecStart=/usr/bin/python3 /opt/edge-demo/dashboard/server.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

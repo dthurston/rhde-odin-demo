@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Edge Command</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="banner">UNCLASSIFIED // FOR DEMONSTRATION ONLY</div>
+
+<header>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+      <path d="M20 3 36 12v16L20 37 4 28V12Z" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 11 28 15.5v9L20 29l-8-4.5v-9Z" fill="currentColor" opacity=".9"/>
+    </svg>
+    <div>
+      <h1>EDGE COMMAND</h1>
+      <div class="sub"><b>RED HAT</b> DEVICE EDGE · IMAGE MODE FLEET</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="chip" id="mockchip" hidden>MOCK MODE</div>
+    <div class="stat"><label>REGISTRY</label><span id="reghost">—</span></div>
+    <div class="stat"><label>DATA LINK</label><span id="linkchip" class="pill">—</span></div>
+    <div class="stat"><label>DTG</label><span id="dtg">—</span></div>
+  </div>
+</header>
+
+<main>
+  <section id="nodes"></section>
+
+  <aside>
+    <div class="panel">
+      <h2>DATA LINK <small>registry → edge</small></h2>
+      <div class="seg" id="linkseg"></div>
+      <div class="linkdesc" id="linkdesc">—</div>
+      <div class="rate">
+        <div><span id="rate">0.0</span><small> Mbps</small></div>
+        <canvas id="spark" width="200" height="44"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>REGISTRY <small>published :latest</small></h2>
+      <div id="registry"></div>
+    </div>
+
+    <div class="panel">
+      <h2>ISR → C2 FEED</h2>
+      <div class="feed">
+        <div class="big" id="feedcount">0</div>
+        <div>
+          <div id="feedstate" class="pill bad">NO SENSOR</div>
+          <div class="feedsrc" id="feedsrc">no ISR node online</div>
+        </div>
+      </div>
+      <div class="feedurl">ODIN live source <code id="feedurl">/live/tracks</code></div>
+    </div>
+
+    <div class="panel why">
+      <h2>WHY IMAGE MODE</h2>
+      <ul>
+        <li><b>Atomic</b> — new image or old image, never half-updated</li>
+        <li><b>Rollback</b> — previous role stays on disk, swap back in one boot</li>
+        <li><b>Container-native</b> — the OS is built, signed and shipped like an app</li>
+        <li><b>Disconnected</b> — only changed layers cross the link</li>
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<section class="logwrap">
+  <div class="loghead"><h2>EVENT LOG</h2><button class="ghost" id="clearlog">CLEAR</button></div>
+  <ol id="log"></ol>
+</section>
+
+<div id="toast" hidden></div>
+
+<template id="node-tpl">
+  <article class="node">
+    <div class="node-head">
+      <div>
+        <div class="node-name"></div>
+        <div class="node-ip"></div>
+      </div>
+      <span class="pill phase"></span>
+    </div>
+
+    <div class="hero">
+      <div class="role-icon"></div>
+      <div class="role-text">
+        <div class="role-label"></div>
+        <div class="role-app"></div>
+        <div class="role-ver"></div>
+      </div>
+      <div class="overlay" hidden>
+        <svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"/><circle class="arc" cx="50" cy="50" r="44"/></svg>
+        <div class="ov-text"><div class="ov-title"></div><div class="ov-sub"></div></div>
+      </div>
+    </div>
+
+    <div class="deps">
+      <div class="dep" data-k="booted"><label>BOOTED</label><span></span></div>
+      <div class="dep" data-k="staged"><label>STAGED</label><span></span></div>
+      <div class="dep" data-k="rollback"><label>ROLLBACK</label><span></span></div>
+    </div>
+
+    <div class="assign">
+      <div class="assign-head">
+        <h3>ASSIGN MISSION ROLE</h3>
+        <div class="seg small mode">
+          <button data-apply="1" class="on">APPLY NOW</button>
+          <button data-apply="0">STAGE ONLY</button>
+        </div>
+      </div>
+      <div class="roles"></div>
+    </div>
+
+    <div class="actions">
+      <button class="act" data-act="apply">APPLY STAGED</button>
+      <button class="act" data-act="rollback">QUICK SWAP ↺</button>
+      <button class="act" data-act="update">UPDATE</button>
+    </div>
+  </article>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

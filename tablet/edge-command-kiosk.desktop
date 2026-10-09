@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Edge Command
+Comment=Open the Edge Command dashboard full screen at login
+Exec=sh -c 'sleep 4; firefox --kiosk http://localhost:8080'
+X-GNOME-Autostart-enabled=true

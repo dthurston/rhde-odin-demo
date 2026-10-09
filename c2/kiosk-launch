@@ -1,0 +1,17 @@
+#!/bin/bash
+# C2 role: run ODINv2 full screen, restart it if it exits.
+. /usr/share/edge-demo/c2.env
+export ODIN_SELF_UPDATE=0
+# No internet on the show floor; point place search somewhere harmless
+export NOMINATIM_URL="http://${TABLET_IP}:8080/nominatim/search"
+
+flags=(--ozone-platform-hint=auto --start-maximized)
+while true; do
+    start=$(date +%s)
+    /usr/lib/odin/odin-launch "${flags[@]}"
+    # If ODIN died instantly the sandbox is the usual suspect: retry without it
+    if (( $(date +%s) - start < 5 )) && [[ " ${flags[*]} " != *" --no-sandbox "* ]]; then
+        flags+=(--no-sandbox)
+    fi
+    sleep 2
+done

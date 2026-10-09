@@ -1,0 +1,15 @@
+# Offline map tiles for ODIN (TileJSON discovery at http://<tablet>:8000/services)
+[Unit]
+Description=Edge demo offline map tiles (:8000)
+
+[Container]
+Image=ghcr.io/consbio/mbtileserver:latest
+ContainerName=edge-tiles
+PublishPort=8000:8000
+Volume=/opt/edge-demo/tiles:/tilesets:ro,Z
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

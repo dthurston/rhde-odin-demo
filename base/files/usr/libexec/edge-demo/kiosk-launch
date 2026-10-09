@@ -1,0 +1,6 @@
+#!/bin/bash
+# Default launcher (base image, no role assigned). Role images replace this file.
+while true; do
+    firefox --kiosk --private-window file:///usr/share/edge-demo/standby.html
+    sleep 2
+done
