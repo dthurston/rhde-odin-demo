@@ -26,6 +26,8 @@ fetch() {
     ls -lh "$f"
     say "offline map tiles -> tiles/$TILESET.mbtiles"
     python3 tools/fetch-tiles.py --out "tiles/$TILESET.mbtiles"
+    # mbtileserver only scans its directory at startup
+    if systemctl is-active -q edge-tiles; then systemctl restart edge-tiles; fi
     say "pre-pull build images"
     # Only pull what is missing: a newer RHEL base would force a full edge-base rebuild
     for img in "$RHEL_BOOTC" "$BIB_IMAGE" registry.access.redhat.com/ubi10/ubi:latest; do

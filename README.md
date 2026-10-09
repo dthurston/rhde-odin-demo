@@ -215,7 +215,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | Laptop boots to a **text login** instead of the kiosk | `systemctl get-default` says `multi-user.target`. A text-mode install sets that on ISOs built before the fix. From the tablet: `sudo ssh -i /root/.ssh/edge_demo root@<laptop-ip> 'systemctl set-default graphical.target && systemctl isolate graphical.target'` |
 | Grey kiosk screen, no ODIN, and `app.asar: FILE_ERROR_ACCESS_DENIED` | The C2 image was built before the permissions fix. Run `git pull`, rebuild with `sudo ./build.sh roles`, run `sudo ./build.sh publish c2 1.0`, then press **CHECK UPDATE** on the laptop. |
 | ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `edgeop` user. |
-| Blank map in ODIN | Run `curl http://10.10.10.1:8000/services` and confirm `tiles/ao.mbtiles` exists. |
+| Blank map in ODIN, or a 404 from port 8000 | Run `curl http://10.10.10.1:8000/services`. If `ao` isn't listed, the tile server started before `tiles/ao.mbtiles` existed. It only scans at startup, so run `sudo systemctl restart edge-tiles`. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |
 | DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `demo.env`. |
 | `bootc switch` fails with a TLS error | The registry is plain HTTP. Rebuild base if you changed `REGISTRY` in `demo.env`. |
