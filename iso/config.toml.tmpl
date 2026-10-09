@@ -9,8 +9,32 @@ timezone UTC --utc
 zerombr
 clearpart --all --initlabel --disklabel=gpt
 autopart --noswap --type=lvm
-network --bootproto=static --device=link --activate --onboot=yes --ip=@IP@ --netmask=@NETMASK@ --gateway=@GATEWAY@ --nameserver=@GATEWAY@ --hostname=@HOST@ --noipv6
+network --hostname=@HOST@
 rootpw --lock
 user --name=admin --groups=wheel --password=@ADMIN_PW@ --plaintext
 reboot --eject
+
+%post --erroronfail
+# Demo LAN address for ANY wired port (no interface name), so it works whether
+# or not a cable was plugged in during install and with USB-ethernet dongles.
+# Lives in /etc, which bootc carries across every image switch.
+cat > /etc/NetworkManager/system-connections/edge-demo.nmconnection <<'EOF'
+[connection]
+id=edge-demo
+type=ethernet
+autoconnect=true
+autoconnect-priority=100
+
+[ethernet]
+
+[ipv4]
+method=manual
+address1=@IP@/@PREFIX@,@GATEWAY@
+dns=@GATEWAY@;
+
+[ipv6]
+method=disabled
+EOF
+chmod 600 /etc/NetworkManager/system-connections/edge-demo.nmconnection
+%end
 """

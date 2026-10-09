@@ -65,8 +65,8 @@ iso() {
     if [[ -z "$pw" ]]; then read -rsp "console password for user 'admin' on $name: " pw; echo; fi
     local out="output/$name"
     mkdir -p "$out"
-    sed -e "s/@HOST@/$name/" -e "s/@IP@/$ip/" -e "s/@GATEWAY@/$TABLET_IP/" \
-        -e "s/@NETMASK@/255.255.255.0/" -e "s/@ADMIN_PW@/$pw/" iso/config.toml.tmpl > "$out/config.toml"
+    sed -e "s/@HOST@/$name/g" -e "s/@IP@/$ip/g" -e "s/@GATEWAY@/$TABLET_IP/g" \
+        -e "s/@PREFIX@/$LAN_PREFIX/g" -e "s/@ADMIN_PW@/$pw/g" iso/config.toml.tmpl > "$out/config.toml"
     chmod 600 "$out/config.toml"
     say "anaconda ISO for $name ($ip) from $REGISTRY/demo/c2:latest"
     podman tag localhost/edge-c2:1.0 "$REGISTRY/demo/c2:latest"
