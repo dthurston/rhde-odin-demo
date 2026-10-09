@@ -212,6 +212,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 |---|---|
 | Laptop card stuck **OFFLINE** | Check the cable or switch. Run `ping 10.10.10.11`. On the laptop console, log in as `admin` and run `sudo bootc status`. |
 | Laptop has only an IPv6 (`fe80::`) address and no 10.10.10.x | Its static IPv4 profile is missing. This happens with ISOs built before the `edge-demo.nmconnection` fix. Press `Ctrl+Alt+F3`, log in as `admin` and run: `sudo nmcli con add type ethernet con-name edge-demo ipv4.method manual ipv4.addresses 10.10.10.11/24 ipv4.gateway 10.10.10.1 ipv6.method disabled connection.autoconnect-priority 100 && sudo nmcli con up edge-demo` (use `.12` on edge-b). It lives in `/etc` and survives image switches. |
+| Laptop boots to a **text login** instead of the kiosk | `systemctl get-default` says `multi-user.target`. A text-mode install sets that on ISOs built before the fix. From the tablet: `sudo ssh -i /root/.ssh/edge_demo root@<laptop-ip> 'systemctl set-default graphical.target && systemctl isolate graphical.target'` |
 | ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `edgeop` user. |
 | Blank map in ODIN | Run `curl http://10.10.10.1:8000/services` and confirm `tiles/ao.mbtiles` exists. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |

@@ -15,6 +15,9 @@ user --name=admin --groups=wheel --password=@ADMIN_PW@ --plaintext
 reboot --eject
 
 %post --erroronfail
+# A text-mode install sets multi-user.target; the kiosk needs graphical (GDM autologin)
+systemctl set-default graphical.target
+
 # Demo LAN address for ANY wired port (no interface name), so it works whether
 # or not a cable was plugged in during install and with USB-ethernet dongles.
 # Lives in /etc, which bootc carries across every image switch.
