@@ -73,7 +73,7 @@ iso() {
         -v "$PWD/$out/config.toml:/config.toml:ro" \
         -v "$PWD/$out:/output" \
         -v /var/lib/containers/storage:/var/lib/containers/storage \
-        "$BIB_IMAGE" --type anaconda-iso --rootfs xfs \
+        "$BIB_IMAGE" --type anaconda-iso --rootfs xfs --progress=verbose \
         "$REGISTRY/demo/c2:latest"
     rm -f "$out/config.toml"
     ls -lh "$out"/bootiso/*.iso
@@ -89,7 +89,7 @@ qcow2() {
         -v "$PWD/output/vm/config.toml:/config.toml:ro" \
         -v "$PWD/output/vm:/output" \
         -v /var/lib/containers/storage:/var/lib/containers/storage \
-        "$BIB_IMAGE" --type qcow2 --rootfs xfs "$REGISTRY/demo/c2:latest"
+        "$BIB_IMAGE" --type qcow2 --rootfs xfs --progress=verbose "$REGISTRY/demo/c2:latest"
     ls -lh output/vm/qcow2/
 }
 
