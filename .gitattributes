@@ -1,0 +1,4 @@
+# Everything runs on Linux: keep LF even on Windows checkouts
+* text=auto eol=lf
+*.mbtiles binary
+*.AppImage binary
