@@ -66,5 +66,7 @@ Tablet ready.
   Dashboard : http://$TABLET_IP:8080   (also http://localhost:8080)
   Registry  : http://$REGISTRY/v2/_catalog
   Tiles     : http://$TABLET_IP:8000/services
-Next: podman login registry.redhat.io, then  cd /opt/edge-demo && ./build.sh all
+Next (both as root -- the builds use root's podman storage and login):
+  sudo podman login registry.redhat.io
+  cd /opt/edge-demo && sudo ./build.sh all
 MSG

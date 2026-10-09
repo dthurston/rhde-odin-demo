@@ -1,5 +1,7 @@
 #!/bin/bash
-# Build, publish and package the edge demo images. Run as root on the tablet.
+# Build, publish and package the edge demo images. Run as root on the tablet:
+#   sudo podman login registry.redhat.io      (once; must be root's login)
+#   sudo ./build.sh <command>
 #
 #   ./build.sh fetch               download ODIN AppImage + offline map tiles   (online)
 #   ./build.sh base                build the shared edge-node OS image          (online: RHEL content)

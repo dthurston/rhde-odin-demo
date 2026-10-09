@@ -89,14 +89,14 @@ cd /opt/edge-demo
 sudo ./build.sh all
 ```
 
-`all` runs these steps:
+Every `build.sh` command needs `sudo`. bootc-image-builder reads root's podman storage, so the images, and the `registry.redhat.io` login, must belong to root. `all` runs these steps, and each can also be run on its own:
 
 | Step | Command | What it does |
 |---|---|---|
-| fetch | `./build.sh fetch` | Downloads the ODIN AppImage and about 9k USGS imagery tiles, and pre-pulls the build images. |
-| base | `./build.sh base` | Builds `edge-base`. |
-| roles | `./build.sh roles` | Builds `edge-c2` and `edge-isr`, versions 1.0 and 1.1. |
-| publish | `./build.sh publish c2 1.0` and `publish isr 1.0` | Makes each image the registry's `:latest`. |
+| fetch | `sudo ./build.sh fetch` | Downloads the ODIN AppImage and about 9k USGS imagery tiles, and pre-pulls the build images. |
+| base | `sudo ./build.sh base` | Builds `edge-base`. |
+| roles | `sudo ./build.sh roles` | Builds `edge-c2` and `edge-isr`, versions 1.0 and 1.1. |
+| publish | `sudo ./build.sh publish c2 1.0` and `sudo ./build.sh publish isr 1.0` | Makes each image the registry's `:latest`. |
 
 > ⚠️ **Build `edge-base` once.** Rebuilding it changes every layer digest, and the laptops then re-download the whole OS.
 
