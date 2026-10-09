@@ -145,6 +145,26 @@ ODIN's settings live in `/var/home/edgeop`, which persists across every image sw
 
 ---
 
+## Health check
+
+Run this on the tablet before every rehearsal and before the show:
+
+```bash
+sudo /opt/edge-demo/tablet/check-tablet.sh
+```
+
+It reports PASS, WARN or FAIL for each of these:
+- The LAN address and link.
+- The three services.
+- The registry contents and the published versions.
+- The map tiles, on both servers.
+- The dashboard, the ODIN live-track stream and the link-shaping state.
+- The locally built images.
+- Each laptop: reachable, current role, boot target and clock drift.
+- Free disk space.
+
+The exit code is the number of failures, so `0` means ready to demo.
+
 ## Running the demo (~5 minutes)
 
 **On the table:** the tablet in front with Edge Command, edge-a showing ODIN, and edge-b showing the ISR console.
