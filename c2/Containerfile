@@ -5,8 +5,11 @@ ARG BASE=localhost/edge-base:latest
 FROM registry.access.redhat.com/ubi10/ubi:latest AS odin
 ARG ODIN_VERSION=3.3.0
 COPY vendor/ODINv2-${ODIN_VERSION}.AppImage /tmp/odin.AppImage
+# The AppImage's squashfs keeps root-only modes; the kiosk user must be able
+# to read resources/app.asar, or ODIN starts and exits without a window
 RUN cd /tmp && chmod +x odin.AppImage && ./odin.AppImage --appimage-extract >/dev/null \
-    && mv squashfs-root /odin
+    && mv squashfs-root /odin \
+    && chmod -R u=rwX,go=rX /odin
 
 # --- role image ---
 FROM ${BASE}
@@ -18,7 +21,8 @@ RUN chown root:root /usr/lib/odin/chrome-sandbox && chmod 4755 /usr/lib/odin/chr
     && for n in odin-v2 ODINv2 odinv2; do \
          if [ -x "/usr/lib/odin/$n" ]; then ln -sf "$n" /usr/lib/odin/odin-launch; break; fi; \
        done \
-    && test -x /usr/lib/odin/odin-launch
+    && test -x /usr/lib/odin/odin-launch \
+    && runuser -u edgeop -- test -r /usr/lib/odin/resources/app.asar
 
 ARG VERSION=1.0
 ARG TABLET_IP=10.10.10.1
