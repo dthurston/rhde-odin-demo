@@ -114,6 +114,7 @@ Build one unattended installer per laptop. It asks for a console password for th
 sudo ./build.sh iso edge-a 10.10.10.11
 sudo ./build.sh iso edge-b 10.10.10.12
 sudo dd if=output/edge-a/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=output/edge-b/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 Each ISO takes about 10–20 minutes and prints a full verbose log. `build.sh` passes `--progress=verbose` because bootc-image-builder's progress bar can crash with `bufio.Scanner: token too long`. The ISO is ready when the script lists `output/<name>/bootiso/install.iso`.
 
