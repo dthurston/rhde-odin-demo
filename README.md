@@ -134,21 +134,34 @@ sudo ssh -i /root/.ssh/edge_demo root@10.10.10.11 bootc status
 ```
 Both laptops should also show **ONLINE** at `http://10.10.10.1:8080`.
 
-### 4. Configure ODIN (once per laptop)
+### 4. Configure ODIN (once, then copy it everywhere)
 
-ODIN's settings live in `/var/home/edgeop`, which persists across every image switch. On each laptop, while it's in the C2 role:
+ODIN's settings live in `/var/home/edgeop/.config`, which persists across every image switch. Set ODIN up by hand on **one** node while it's in the C2 role, then copy that setup to the others.
 
-1. **Offline basemap:** press `Ctrl+N`, then `T`. Enter the URL `http://10.10.10.1:8000/services`, tick **ao**, and select it under Background Maps (`Ctrl+Shift+T`). Disable the default online layer.
-2. **Live ISR tracks:** click **+**, choose **Create Live Data Source**, and enter the URL `http://10.10.10.1:8080/live/tracks`. Use event type `message`, enable *Track features by ID*, and tick to connect.
-3. Pan to NTC Fort Irwin (35.26 N, 116.68 W). Optionally draw some friendly units, a phase line and an objective.
+1. **Project:** ODIN opens in its project manager. Create a project, for example `NTC ROTATION 27-01`, and open it.
+2. **Offline basemap:** press `Ctrl+N`, then `T`. Enter the URL `http://10.10.10.1:8000/services`, tick **ao**, and select it under Background Maps (`Ctrl+Shift+T`). Disable the default online layer.
+3. **Live ISR tracks:** click **+**, choose **Create Live Data Source**, and enter the URL `http://10.10.10.1:8080/live/tracks`. Use event type `message`, enable *Track features by ID*, and tick to connect.
+4. Pan to NTC Fort Irwin (35.26 N, 116.68 W). Optionally draw some friendly units, a phase line and an objective.
+
+**Save it as the standard profile and push it to the other nodes.** Run this on the control node:
+```bash
+cd /opt/edge-demo
+sudo ./tools/odin-profile.sh capture edge-a     # saves odin/profile.tgz
+sudo ./tools/odin-profile.sh apply edge-b       # or: apply all
+```
+Each node's screen goes blank for about 10 seconds. GDM is stopped so ODIN closes its databases cleanly, then the kiosk and ODIN come back on their own. The saved profile also covers these cases:
+- **Reset between demo runs:** `apply all` puts every C2 map back to the clean starting picture and wipes anything visitors drew.
+- **New or rebuilt nodes:** a reinstalled laptop or a VM from `create-vms.sh --recreate` gets the full setup in one command.
+- **Keeping it in git:** copy `/opt/edge-demo/odin/profile.tgz` into your clone's `odin/` folder and commit it. A fresh control node then has it too.
 
 ### 5. Set up the starting state
 
 1. In Edge Command, assign **edge-b → ISR Sensor Node**.
 2. **Pre-stage rollback:** swap each laptop through both roles once (A: C2→ISR→C2, B: ISR→C2→ISR). Each laptop then holds the other role as its rollback deployment, so **SWAP ↺** is a reboot with no download.
-3. Rehearse with the tablet's internet **unplugged**. Between runs, reset the registry to v1.0 with:
+3. Rehearse with the tablet's internet **unplugged**. Between runs, reset the registry to v1.0 and the ODIN maps to the saved profile:
    ```bash
    sudo ./build.sh reset
+   sudo ./tools/odin-profile.sh apply all
    ```
 
 ---
@@ -292,6 +305,8 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | `vm/` | Single-laptop mode: `create-vms.sh` (libvirt network + edge VMs), `open-demo.sh` (dashboard + VM screens), `destroy-vms.sh` |
 | `iso/` | Kickstart template for unattended laptop installs |
 | `tools/fetch-tiles.py` | Builds the offline `.mbtiles` from USGS National Map imagery (public domain) |
+| `tools/odin-profile.sh` | Captures a configured ODIN setup and pushes it to edge nodes (`capture <node>`, `apply <node>`, `apply all`) |
+| `odin/` | The saved golden ODIN profile (`profile.tgz`) |
 | [`RUNBOOK.md`](RUNBOOK.md) | Show-day checklist, a detailed script and troubleshooting |
 
 ## Troubleshooting

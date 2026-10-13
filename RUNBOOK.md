@@ -63,8 +63,8 @@ Check from the tablet:
 sudo ssh -i /root/.ssh/edge_demo root@10.10.10.11 bootc status
 ```
 
-## 4. One-time ODIN configuration (on each laptop, while it's C2)
-ODIN keeps its settings in `/var/home/edgeop`, and that survives every image switch, so you only do this once per laptop.
+## 4. One-time ODIN configuration (one laptop, then copy it)
+ODIN keeps its settings in `/var/home/edgeop`, and that survives every image switch. Set it up by hand on one laptop while it's C2. Start by creating and opening a project in ODIN's project manager. Then copy that setup to the others with `sudo ./tools/odin-profile.sh capture edge-a` followed by `apply all`. The README has the details.
 1. **Offline map:** press `Ctrl+N` then `T` and enter the URL `http://10.10.10.1:8000/services`. Tick `ao`, then select it under Background Maps (`Ctrl+Shift+T`). Turn off the default online OSM layer.
 2. **Live ISR tracks:** click **+**, choose *Create Live Data Source*, enter the URL `http://10.10.10.1:8080/live/tracks`, keep the event type `message`, enable *Track features by ID*, and tick to connect.
 3. Zoom to Fort Irwin / NTC (35.26 N, 116.68 W). Optionally draw a few friendly units, a phase line and an objective so the map looks like a real plan.
@@ -75,7 +75,7 @@ Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on 
 ## 5. Rehearse (Saturday and Sunday)
 - Do three full runs with **the tablet's internet unplugged**.
 - **Record a backup video** of one clean run on a phone and keep it on the tablet.
-- Between runs, use `sudo ./build.sh reset`, which puts both roles back to v1.0 in the registry. Then use SWAP ↺ to return to the starting state.
+- Between runs, use `sudo ./build.sh reset`, which puts both roles back to v1.0 in the registry, and `sudo ./tools/odin-profile.sh apply all`, which wipes visitors' drawings from the ODIN maps. Then use SWAP ↺ to return to the starting state.
 
 ---
 
