@@ -306,6 +306,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | Blank map in ODIN, or a 404 from port 8000 | Run `curl http://10.10.10.1:8000/services`. If `ao` isn't listed, the tile server started before `tiles/ao.mbtiles` existed. It only scans at startup, so run `sudo systemctl restart edge-tiles`. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |
 | DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `/opt/edge-demo/demo.env`. To change it, re-run `setup-tablet.sh`. |
+| Role switch fails (`rc=1`) with `dial tcp 10.10.10.1:5000: connect: connection refused`, mostly with VMs | libvirt's isolated network rejects podman's port forwarding, so the registry and tile containers now use host networking. Pull, then re-run `sudo ./tablet/setup-tablet.sh`, which reinstalls and restarts them. `check-tablet.sh` tests reachability from each edge node. |
 | `bootc switch` fails with a TLS error | The registry is plain HTTP. Rebuild base if you changed `REGISTRY` in `demo.env`. |
 
 See [RUNBOOK.md](RUNBOOK.md) for the full show-day checklist.

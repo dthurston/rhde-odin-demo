@@ -5,7 +5,9 @@ Description=Edge demo container registry (:5000)
 [Container]
 Image=docker.io/library/registry:2
 ContainerName=edge-registry
-PublishPort=5000:5000
+# Host networking: no port forwarding, which libvirt's isolated-network
+# firewall rules reject for VMs ("connection refused" from the edge VMs)
+Network=host
 Volume=/var/lib/edge-registry:/var/lib/registry:Z
 Environment=REGISTRY_STORAGE_DELETE_ENABLED=true
 

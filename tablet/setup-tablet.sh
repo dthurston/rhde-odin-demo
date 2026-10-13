@@ -137,7 +137,8 @@ install -m 0644 /opt/edge-demo/tablet/edge-command.service /etc/systemd/system/
 podman pull docker.io/library/registry:2
 podman pull ghcr.io/consbio/mbtileserver:latest
 systemctl daemon-reload
-systemctl start edge-registry.service edge-tiles.service
+# restart, not start: re-running setup must apply changed quadlets
+systemctl restart edge-registry.service edge-tiles.service
 systemctl enable --now edge-command.service
 
 echo "== full-screen dashboard at login"

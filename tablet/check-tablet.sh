@@ -116,14 +116,21 @@ for node in $NODES; do
     fi
     out=$(ssh -i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR "root@$ip" \
-              'cat /usr/share/edge-demo/role; systemctl get-default; date +%s' 2>/dev/null)
+              "cat /usr/share/edge-demo/role; systemctl get-default; date +%s
+               curl -s -o /dev/null --max-time 3 -w '%{http_code}\n' http://$REGISTRY/v2/
+               curl -s -o /dev/null --max-time 3 -w '%{http_code}\n' http://$TABLET_IP:8000/services" 2>/dev/null)
     if [[ -z "$out" ]]; then
         fail "$name ($ip) pings but SSH failed"
         continue
     fi
-    { read -r role ver; read -r target; read -r epoch; } <<<"$out"
+    { read -r role ver; read -r target; read -r epoch; read -r reg_code; read -r tiles_code; } <<<"$out"
     pass "$name ($ip) up, role ${role^^} v$ver"
     [[ "$target" == graphical.target ]] || fail "$name boots to $target  (systemctl set-default graphical.target)"
+    # Seen from the edge node: an image switch needs the registry, ODIN needs the tiles
+    [[ "$reg_code" == 200 ]] && pass "$name can reach the registry" \
+        || fail "$name can't reach the registry (http $reg_code) -- firewall, or podman port forwarding blocked by libvirt"
+    [[ "$tiles_code" == 200 ]] && pass "$name can reach the map tiles" \
+        || fail "$name can't reach the map tiles (http $tiles_code)"
     drift=$(( epoch - $(date +%s) )); drift=${drift#-}
     (( drift < 300 )) || warn "$name clock is off by $((drift / 60)) min"
 done

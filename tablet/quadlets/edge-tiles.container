@@ -5,7 +5,9 @@ Description=Edge demo offline map tiles (:8000)
 [Container]
 Image=ghcr.io/consbio/mbtileserver:latest
 ContainerName=edge-tiles
-PublishPort=8000:8000
+# Host networking: no port forwarding, which libvirt's isolated-network
+# firewall rules reject for VMs ("connection refused" from the edge VMs)
+Network=host
 Volume=/opt/edge-demo/tiles:/tilesets:ro,Z
 
 [Service]
