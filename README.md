@@ -145,6 +145,62 @@ ODIN's settings live in `/var/home/edgeop`, which persists across every image sw
 
 ---
 
+## Alternative: one laptop with two edge VMs
+
+The whole demo also fits on **one laptop**. The laptop takes the tablet's role as control node, and edge-a and edge-b run as KVM virtual machines on an isolated virtual network that reuses the 10.10.10.0/24 addresses. The images, dashboard, registry, tiles, link simulator and health check all work unchanged. Only the edge-node install differs: the VMs boot from a disk image instead of a USB installer.
+
+```
+Laptop · RHEL 10 · libvirt/KVM
+├─ host = control node     registry :5000 · tiles :8000 · Edge Command :8080 · tc shaping
+└─ network "edge-demo"     bridge virbr-edge = 10.10.10.1/24, isolated (no route out)
+     ├─ VM edge-a 10.10.10.11   (DHCP reservation by MAC)
+     └─ VM edge-b 10.10.10.12
+```
+
+**Host requirements:**
+- RHEL 10 Workstation, registered. The builds need RHEL content.
+- 16 GB of RAM or more. Each VM gets 4 GB; override with `VM_RAM=` (in MiB).
+- 4 or more cores, with VT-x/AMD-V enabled in the BIOS.
+- About 100 GB of free disk.
+
+**Setup**
+1. In `demo.env`, set `LAN_IFACE=virbr-edge`. Leave the rest as is.
+2. Run the same setup and build steps as for the tablet (sections 1 and 2 above):
+   ```bash
+   sudo ./tablet/setup-tablet.sh
+   sudo podman login registry.redhat.io
+   cd /opt/edge-demo && sudo ./build.sh all
+   ```
+   In VM mode, setup skips the wired-LAN address and the full-screen dashboard autostart, and it opens the firewall in libvirt's zone.
+3. Create the network and the VMs:
+   ```bash
+   sudo ./vm/create-vms.sh
+   ```
+   This does the following:
+   - Installs KVM and libvirt.
+   - Creates the `edge-demo` network.
+   - Builds the C2 disk image (`build.sh qcow2`). It asks for the VMs' `admin` console password.
+   - Creates each VM on a copy-on-write overlay of that disk.
+   - Waits until both VMs answer over SSH.
+
+   It adds you to the `libvirt` group. Log out and back in once afterward.
+4. Open the screens as your normal user (no sudo):
+   ```bash
+   ./vm/open-demo.sh                # dashboard + one window per VM
+   ./vm/open-demo.sh --full-screen  # VM screens full screen, e.g. on an external monitor
+   ```
+   The VM windows reconnect by themselves when a VM reboots into a new image.
+5. Do the one-time ODIN setup (section 4) inside each VM's window, then set the starting state (section 5).
+
+**Good to know**
+- **Reboots are faster:** a VM reboots in about 20–30 seconds versus a minute or more on a laptop, so role swaps are snappier on stage.
+- **ODIN runs without a real GPU:** it uses software rendering, so map panning is less smooth than on real hardware.
+- **Clocks stay in sync:** the VMs take their clock from the host.
+- **Rebuilding:** `sudo ./vm/create-vms.sh --recreate` resets both VMs to a fresh disk. That erases their ODIN settings. Delete `output/vm/qcow2/disk.qcow2` first if you also want the disk rebuilt from newer images. `sudo ./vm/destroy-vms.sh` removes the VMs and the network.
+- **Switching back to the tablet setup:** set `LAN_IFACE` back to the real NIC and re-run `setup-tablet.sh`.
+
+---
+
 ## Health check
 
 Run this on the tablet before every rehearsal and before the show:
@@ -222,7 +278,8 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | `c2/` | ODINv2 role: AppImage unpacked to `/usr/lib/odin`, kiosk launcher |
 | `isr/` | ISR sensor role: static web app with Leaflet vendored for offline use |
 | `dashboard/` | Edge Command server (`server.py`) and touch UI (`static/`) |
-| `tablet/` | `setup-tablet.sh`, registry/tile Quadlets, dashboard systemd unit, kiosk autostart |
+| `tablet/` | `setup-tablet.sh`, `check-tablet.sh`, registry/tile Quadlets, dashboard systemd unit, kiosk autostart |
+| `vm/` | Single-laptop mode: `create-vms.sh` (libvirt network + edge VMs), `open-demo.sh` (dashboard + VM screens), `destroy-vms.sh` |
 | `iso/` | Kickstart template for unattended laptop installs |
 | `tools/fetch-tiles.py` | Builds the offline `.mbtiles` from USGS National Map imagery (public domain) |
 | [`RUNBOOK.md`](RUNBOOK.md) | Show-day checklist, a detailed script and troubleshooting |

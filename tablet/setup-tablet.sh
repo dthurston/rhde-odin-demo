@@ -20,16 +20,24 @@ if [[ "$HERE" != /opt/edge-demo ]]; then
     cp -a "$HERE"/. /opt/edge-demo/
 fi
 
-echo "== demo LAN on $LAN_IFACE = $TABLET_IP/$LAN_PREFIX"
-nmcli -t -f NAME con show | grep -qx edge-demo || \
-    nmcli con add type ethernet ifname "$LAN_IFACE" con-name edge-demo \
-        ipv4.method manual ipv4.addresses "$TABLET_IP/$LAN_PREFIX" ipv6.method disabled \
-        connection.autoconnect yes
-nmcli con up edge-demo || echo "!! could not bring up $LAN_IFACE yet (cable unplugged?) -- it will autoconnect"
+if [[ "$LAN_IFACE" == virbr* ]]; then
+    echo "== VM mode: libvirt network owns $LAN_IFACE ($TABLET_IP) -- created by vm/create-vms.sh"
+else
+    echo "== demo LAN on $LAN_IFACE = $TABLET_IP/$LAN_PREFIX"
+    nmcli -t -f NAME con show | grep -qx edge-demo || \
+        nmcli con add type ethernet ifname "$LAN_IFACE" con-name edge-demo \
+            ipv4.method manual ipv4.addresses "$TABLET_IP/$LAN_PREFIX" ipv6.method disabled \
+            connection.autoconnect yes
+    nmcli con up edge-demo || echo "!! could not bring up $LAN_IFACE yet (cable unplugged?) -- it will autoconnect"
+fi
 
 echo "== firewall"
 if systemctl is-active -q firewalld; then
-    firewall-cmd --permanent --add-port=5000/tcp --add-port=8000/tcp --add-port=8080/tcp
+    # default zone for the wired LAN; libvirt zone for VMs on the virtual bridge
+    for zone in "" libvirt; do
+        [[ -z "$zone" ]] || firewall-cmd --get-zones | grep -qw "$zone" || continue
+        firewall-cmd --permanent ${zone:+--zone=$zone} --add-port=5000/tcp --add-port=8000/tcp --add-port=8080/tcp
+    done
     firewall-cmd --reload
 fi
 
@@ -53,7 +61,8 @@ systemctl start edge-registry.service edge-tiles.service
 systemctl enable --now edge-command.service
 
 echo "== tablet kiosk autostart for the logged-in desktop user"
-for home in /home/*; do
+# VM mode shares the screen with the VM windows (vm/open-demo.sh), so no full-screen kiosk
+[[ "$LAN_IFACE" == virbr* ]] && echo "   skipped in VM mode" || for home in /home/*; do
     [[ -d "$home" ]] || continue
     u=$(basename "$home")
     install -D -o "$u" -g "$u" -m 0644 /opt/edge-demo/tablet/edge-command-kiosk.desktop \

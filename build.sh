@@ -8,7 +8,7 @@
 #   ./build.sh roles               build c2 + isr, versions 1.0 and 1.1
 #   ./build.sh publish ROLE VER    make localhost/edge-ROLE:VER the registry's demo/ROLE:latest
 #   ./build.sh iso NAME IP         unattended installer ISO for one laptop (output/NAME/)
-#   ./build.sh qcow2               VM disk of the C2 image for a dry run
+#   ./build.sh qcow2               VM disk of the C2 image (dry run, or vm/create-vms.sh)
 #   ./build.sh all                 fetch + base + roles + publish 1.0 of both
 #   ./build.sh reset               put both roles back to 1.0 in the registry (between demo runs)
 set -euo pipefail
@@ -88,15 +88,22 @@ iso() {
 }
 
 qcow2() {
+    local pw=${ADMIN_PW:-}
+    if [[ -z "$pw" ]]; then read -rsp "console password for user 'admin' on the VMs: " pw; echo; fi
     mkdir -p output/vm
-    printf '[[customizations.user]]\nname = "admin"\npassword = "%s"\ngroups = ["wheel"]\n' \
-        "${ADMIN_PW:-redhat}" > output/vm/config.toml
+    # Root must hold several bootc deployments (base + c2 + isr + rollback)
+    printf '[[customizations.user]]\nname = "admin"\npassword = "%s"\ngroups = ["wheel"]\n\n[[customizations.filesystem]]\nmountpoint = "/"\nminsize = "%s"\n' \
+        "$pw" "${VM_DISK_SIZE:-40 GiB}" > output/vm/config.toml
+    chmod 600 output/vm/config.toml
+    say "qcow2 disk from $REGISTRY/demo/c2:latest"
+    podman tag localhost/edge-c2:1.0 "$REGISTRY/demo/c2:latest"
     podman run --rm -it --privileged --pull=never \
         --security-opt label=type:unconfined_t \
         -v "$PWD/output/vm/config.toml:/config.toml:ro" \
         -v "$PWD/output/vm:/output" \
         -v /var/lib/containers/storage:/var/lib/containers/storage \
         "$BIB_IMAGE" --type qcow2 --rootfs xfs --progress=verbose "$REGISTRY/demo/c2:latest"
+    rm -f output/vm/config.toml
     ls -lh output/vm/qcow2/
 }
 
