@@ -67,12 +67,18 @@ registry.redhat.io/rhel10/rhel-bootc
    git clone https://github.com/dthurston/rhde-odin-demo.git
    cd rhde-odin-demo
    ```
-3. Edit **`demo.env`**. At minimum set `LAN_IFACE` to the NIC cabled to the switch (see `nmcli device`). IPs, node names, the RHEL version and the ODIN version are also set here.
+3. Optionally review **`demo.env`**, which sets the IPs, node names, RHEL version and ODIN version. The defaults are fine. You don't set the network port here; setup asks for it.
 4. Run the one-time setup:
    ```bash
    sudo ./tablet/setup-tablet.sh
    ```
-   This does the following:
+   It first asks how the edge nodes will run:
+   - **1) physical:** this tablet plus real laptops, which is this section.
+   - **2) virtual:** one laptop with VMs (see [the VM section](#alternative-one-laptop-with-two-edge-vms)).
+
+   For physical, it lists the wired ports and asks which one is cabled to the switch. It records your answer as `LAN_IFACE` in `/opt/edge-demo/demo.env`. Re-running offers your previous answer as the default. To skip the questions, run `sudo ./tablet/setup-tablet.sh --physical enp0s20f0u1` or `--virtual`.
+
+   Setup then does the following:
    - Installs podman, `tc`/netem and Firefox.
    - Pins `10.10.10.1` on the LAN NIC and creates the control SSH key.
    - Starts the registry, tile server and Edge Command as services.
@@ -164,15 +170,17 @@ Laptop · RHEL 10 · libvirt/KVM
 - About 100 GB of free disk.
 
 **Setup**
-1. In `demo.env`, set `LAN_IFACE=virbr-edge`. Leave the rest as is.
-2. Run the same setup and build steps as for the tablet (sections 1 and 2 above):
+1. Run the same setup and build steps as for the tablet (sections 1 and 2 above). When setup asks, choose **2) virtual**:
    ```bash
-   sudo ./tablet/setup-tablet.sh
+   sudo ./tablet/setup-tablet.sh            # choose 2) virtual, or pass --virtual
    sudo podman login registry.redhat.io
    cd /opt/edge-demo && sudo ./build.sh all
    ```
-   In VM mode, setup skips the wired-LAN address and the full-screen dashboard autostart, and it opens the firewall in libvirt's zone.
-3. Create the network and the VMs:
+   In virtual mode, setup does the following:
+   - Records `LAN_IFACE=virbr-edge`.
+   - Skips the wired-LAN address and the full-screen dashboard at login.
+   - Opens the firewall in libvirt's zone.
+2. Create the network and the VMs:
    ```bash
    sudo ./vm/create-vms.sh
    ```
@@ -184,20 +192,20 @@ Laptop · RHEL 10 · libvirt/KVM
    - Waits until both VMs answer over SSH.
 
    It adds you to the `libvirt` group. Log out and back in once afterward.
-4. Open the screens as your normal user (no sudo):
+3. Open the screens as your normal user (no sudo):
    ```bash
    ./vm/open-demo.sh                # dashboard + one window per VM
    ./vm/open-demo.sh --full-screen  # VM screens full screen, e.g. on an external monitor
    ```
    The VM windows reconnect by themselves when a VM reboots into a new image.
-5. Do the one-time ODIN setup (section 4) inside each VM's window, then set the starting state (section 5).
+4. Do the one-time ODIN setup (section 4) inside each VM's window, then set the starting state (section 5).
 
 **Good to know**
 - **Reboots are faster:** a VM reboots in about 20–30 seconds versus a minute or more on a laptop, so role swaps are snappier on stage.
 - **ODIN runs without a real GPU:** it uses software rendering, so map panning is less smooth than on real hardware.
 - **Clocks stay in sync:** the VMs take their clock from the host.
 - **Rebuilding:** `sudo ./vm/create-vms.sh --recreate` resets both VMs to a fresh disk. That erases their ODIN settings. Delete `output/vm/qcow2/disk.qcow2` first if you also want the disk rebuilt from newer images. `sudo ./vm/destroy-vms.sh` removes the VMs and the network.
-- **Switching back to the tablet setup:** set `LAN_IFACE` back to the real NIC and re-run `setup-tablet.sh`.
+- **Switching between modes:** re-run `sudo ./tablet/setup-tablet.sh` and pick the other mode. Going to virtual turns off the wired `edge-demo` network profile, so it doesn't clash with the VM bridge's address. Going back re-enables it.
 
 ---
 
@@ -295,7 +303,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `edgeop` user. |
 | Blank map in ODIN, or a 404 from port 8000 | Run `curl http://10.10.10.1:8000/services`. If `ao` isn't listed, the tile server started before `tiles/ao.mbtiles` existed. It only scans at startup, so run `sudo systemctl restart edge-tiles`. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |
-| DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `demo.env`. |
+| DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `/opt/edge-demo/demo.env`. To change it, re-run `setup-tablet.sh`. |
 | `bootc switch` fails with a TLS error | The registry is plain HTTP. Rebuild base if you changed `REGISTRY` in `demo.env`. |
 
 See [RUNBOOK.md](RUNBOOK.md) for the full show-day checklist.

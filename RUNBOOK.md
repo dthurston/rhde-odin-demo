@@ -26,12 +26,12 @@ Tablet 10.10.10.1 ── dumb gigabit switch ── edge-a 10.10.10.11
 1. Install **RHEL 10** (Workstation / Server with GUI) on the tablet as a normal install, then register it:
    `subscription-manager register --username <you>`.
 2. Copy this folder to the tablet, for example on USB, to `~/rhde-odin-demo`. USB sticks drop the execute bits, so run `chmod +x build.sh tablet/setup-tablet.sh` afterward.
-3. Edit `demo.env`. At minimum set **`LAN_IFACE`**, the NIC cabled to the switch (find it with `nmcli device`).
+3. Plug the tablet into the demo switch so its wired port shows up.
 4. Run setup as root:
    ```bash
    sudo ./tablet/setup-tablet.sh
    ```
-   This installs podman, tc and netem. It pins 10.10.10.1 on the LAN NIC and creates the control SSH key. It also starts the registry, tile and dashboard services and sets Firefox to open the dashboard full screen at login.
+   When it asks, choose **1) physical**, then pick the wired port that's cabled to the switch. Setup records your choice in `/opt/edge-demo/demo.env`, so you don't edit any file. It also installs podman, tc and netem. It pins 10.10.10.1 on the LAN NIC and creates the control SSH key. It also starts the registry, tile and dashboard services and sets Firefox to open the dashboard full screen at login.
 5. Log in to Red Hat's registry and build everything:
    ```bash
    sudo podman login registry.redhat.io
@@ -101,7 +101,7 @@ Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on 
 | ODIN window doesn't appear | The kiosk retries with `--no-sandbox` automatically. On the laptop, run `journalctl --user -b` as edgeop. Make sure `/usr/lib/odin/odin-launch` exists. |
 | Map is blank in ODIN | Run `curl http://10.10.10.1:8000/services` on the tablet. Is `tiles/ao.mbtiles` present? Re-add the tile service in ODIN. |
 | ISR console says NO LINK | Run `systemctl status edge-command` on the tablet and check that firewall port 8080 is open. |
-| DDIL buttons error | Run `lsmod | grep netem`. If it's missing: `dnf install kernel-modules-extra && modprobe sch_netem`. Also check that `LAN_IFACE` in demo.env is correct. |
+| DDIL buttons error | Run `lsmod | grep netem`. If it's missing: `dnf install kernel-modules-extra && modprobe sch_netem`. Also check that `LAN_IFACE` in `/opt/edge-demo/demo.env` is correct. To change it, re-run `setup-tablet.sh`. |
 | `bootc switch` fails with a TLS error | The registry is HTTP. The base image ships `/etc/containers/registries.conf.d/50-edge-demo.conf`. Rebuild base if you changed `REGISTRY`. |
 | Everything is broken 10 minutes before showtime | Play the backup video. Then fix edge-b by running `bootc rollback && reboot` from its console. |
 

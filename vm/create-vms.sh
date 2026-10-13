@@ -7,8 +7,8 @@
 #   sudo ./vm/create-vms.sh --recreate   delete the VMs and start them over from the built disk
 #                                        (rm output/vm/qcow2/disk.qcow2 first to rebuild that too)
 #
-# Prerequisites: demo.env has LAN_IFACE=virbr-edge, tablet/setup-tablet.sh has
-# run, and the images are built and published (sudo ./build.sh all).
+# Prerequisites: sudo ./tablet/setup-tablet.sh --virtual has run, and the
+# images are built and published (sudo ./build.sh all). Run from /opt/edge-demo.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 cd "$HERE"
@@ -30,7 +30,7 @@ mac()  { printf '52:54:00:ed:00:%02x' "$1"; }
 recreate=0
 [[ "${1:-}" == --recreate ]] && recreate=1
 
-[[ "$LAN_IFACE" == "$BRIDGE" ]] || { echo "VM mode needs LAN_IFACE=$BRIDGE in demo.env (now: $LAN_IFACE)"; exit 1; }
+[[ "$LAN_IFACE" == "$BRIDGE" ]] || { echo "this control node is set up for physical mode (LAN_IFACE=$LAN_IFACE) -- run: sudo ./tablet/setup-tablet.sh --virtual"; exit 1; }
 [[ "$LAN_PREFIX" == 24 ]] || { echo "the VM network assumes LAN_PREFIX=24"; exit 1; }
 
 say "virtualization packages"
