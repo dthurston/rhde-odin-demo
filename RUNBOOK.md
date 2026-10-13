@@ -51,7 +51,10 @@ Boot it in virt-manager. It should auto-login straight into ODIN.
 sudo ./build.sh iso edge-a 10.10.10.11
 sudo ./build.sh iso edge-b 10.10.10.12
 sudo dd if=output/edge-a/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=output/edge-b/bootiso/install.iso of=/dev/sdY bs=4M status=progress oflag=sync
 ```
+Use one stick per laptop and label them **edge-a** and **edge-b**, because each ISO sets that laptop's name and IP. Before each `dd`, plug in the stick and run `lsblk` to find its device name (`sdX`/`sdY`). Check it by size and model: `dd` overwrites the target without asking, so the wrong letter erases a real disk.
+
 Boot each laptop from its stick. The install is unattended and **wipes the disk**. Each laptop comes up as the C2 role and already tracks `10.10.10.1:5000/demo/c2:latest`.
 For console recovery, log in as `admin` with the password you entered.
 

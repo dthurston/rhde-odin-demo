@@ -120,8 +120,10 @@ Build one unattended installer per laptop. It asks for a console password for th
 sudo ./build.sh iso edge-a 10.10.10.11
 sudo ./build.sh iso edge-b 10.10.10.12
 sudo dd if=output/edge-a/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
-sudo dd if=output/edge-b/bootiso/install.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=output/edge-b/bootiso/install.iso of=/dev/sdY bs=4M status=progress oflag=sync
 ```
+Use one stick per laptop, labeled **edge-a** and **edge-b**, because each ISO sets that laptop's name and IP. Run `lsblk` with the stick plugged in to find its device name. Check it by size and model: `dd` overwrites the target without asking.
+
 Each ISO takes about 10–20 minutes and prints a full verbose log. `build.sh` passes `--progress=verbose` because bootc-image-builder's progress bar can crash with `bufio.Scanner: token too long`. The ISO is ready when the script lists `output/<name>/bootiso/install.iso`.
 
 Boot each laptop from its USB stick (UEFI; Secure Boot can stay on). The install is hands-off and **erases the disk**. Each laptop comes up auto-logged-in as the **C2** role, tracking `10.10.10.1:5000/demo/c2:latest`.
