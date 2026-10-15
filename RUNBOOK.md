@@ -66,7 +66,7 @@ sudo ssh -i /root/.ssh/edge_demo root@10.10.10.11 bootc status
 ## 4. One-time ODIN configuration (one laptop, then copy it)
 ODIN keeps its settings in `/var/home/edgeop`, and that survives every image switch. Set it up by hand on one laptop while it's C2. Start by creating and opening a project in ODIN's project manager. Then copy that setup to the others with `sudo ./tools/odin-profile.sh capture edge-a` followed by `apply all`. The README has the details.
 1. **Offline map:** press `Ctrl+N` then `T` and enter the URL `http://10.10.10.1:8000/services`. Tick `ao`, then select it under Background Maps (`Ctrl+Shift+T`). Turn off the default online OSM layer.
-2. **Live ISR tracks:** click **+**, choose *Create Live Data Source*, enter the URL `http://10.10.10.1:8080/live/tracks`, keep the event type `message`, enable *Track features by ID*, and tick to connect.
+2. **Live ISR tracks:** click **+**, choose *Create Live Data Source*, enter the URL `http://10.10.10.1:8080/live/tracks`, keep the event type `message`, leave *Track features by ID* **unchecked**, and tick to connect. When it's checked, old tracks pile up on the map and no longer match the ISR console.
 3. Zoom to Fort Irwin / NTC (35.26 N, 116.68 W). Optionally draw a few friendly units, a phase line and an objective so the map looks like a real plan.
 
 Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on the dashboard, assign ISR to edge-b).
@@ -89,7 +89,7 @@ Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on 
    - The card says *mission app still running*, and the ISR console keeps working while the image downloads in the background.
    - Point out that only the role layer crosses the link because the OS layers are already on disk. Watch the MB counter.
    - *If it's slow* (the ODIN layer is about 100 MB or more), switch to FULL and say: "Comms restored, it finishes on its own."
-4. **Atomic apply (60 s).** Press **APPLY STAGED**. edge-b reboots and comes back as a second C2 workstation, about a minute later. Meanwhile the ISR feed drops to **NO SENSOR**. "That's the trade-off: we just lost our sensor."
+4. **Atomic apply (60 s).** Press **APPLY STAGED**. It stays grey until staging has finished; on DDIL, switch the link to **FULL** ("comms restored") to finish quickly. edge-b reboots and comes back as a second C2 workstation, about a minute later. Meanwhile the ISR feed drops to **NO SENSOR**. "That's the trade-off: we just lost our sensor."
 5. **Instant rollback (45 s).** On edge-b press **SWAP ↺ ISR**. Nothing downloads because the previous image is still on disk, and it boots straight back. The tracks reappear in ODIN.
 6. **Patch over DDIL (60 s).** Set DATA LINK to DDIL. Under REGISTRY, publish **ISR Sensor Node v1.1**. On edge-b press **UPDATE → v1.1** with APPLY NOW. Only a few KB cross the 1 Mbps link. After the reboot the sweep is **amber**, a visible proof that the patch landed.
 7. **Cut the link mid-update (optional, 30 s).** Set **CUT** during a stage. The pull fails, and the laptop is still running its old image, untouched. "Nothing is ever half-applied." Restore the link and retry.
@@ -104,7 +104,7 @@ Then set up the demo's starting state: **edge-a = C2** and **edge-b = ISR** (on 
 | ODIN window doesn't appear | The kiosk retries with `--no-sandbox` automatically. On the laptop, run `journalctl --user -b` as edgeop. Make sure `/usr/lib/odin/odin-launch` exists. |
 | Map is blank in ODIN | Run `curl http://10.10.10.1:8000/services` on the tablet. Is `tiles/ao.mbtiles` present? Re-add the tile service in ODIN. |
 | ISR console says NO LINK | Run `systemctl status edge-command` on the tablet and check that firewall port 8080 is open. |
-| DDIL buttons error | Run `lsmod | grep netem`. If it's missing: `dnf install kernel-modules-extra && modprobe sch_netem`. Also check that `LAN_IFACE` in `/opt/edge-demo/demo.env` is correct. To change it, re-run `setup-tablet.sh`. |
+| DDIL buttons error | Run `lsmod | grep netem`. If it's missing: `dnf install kernel-modules-extra && modprobe sch_netem`. Also check that `LAN_IFACE` in `/opt/edge-demo/demo.env` is correct. To change it, re-run `setup-tablet.sh`. If `modprobe` fails right after a fresh install, the module was built for a newer kernel than the one running: run `sudo dnf -y update`, reboot, and re-run `setup-tablet.sh`. |
 | `bootc switch` fails with a TLS error | The registry is HTTP. The base image ships `/etc/containers/registries.conf.d/50-edge-demo.conf`. Rebuild base if you changed `REGISTRY`. |
 | Everything is broken 10 minutes before showtime | Play the backup video. Then fix edge-b by running `bootc rollback && reboot` from its console. |
 
