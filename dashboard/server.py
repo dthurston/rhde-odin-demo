@@ -313,7 +313,12 @@ BACKEND = MockBackend() if MOCK else RealBackend()
 def poll_node(name):
     while True:
         node = STATE["nodes"][name]
-        st = BACKEND.status(node)
+        try:
+            st = BACKEND.status(node)
+        except Exception as e:  # bootc busy or partial output: skip this round, keep polling
+            print("poll", name, repr(e), flush=True)
+            time.sleep(3)
+            continue
         with LOCK:
             if st:
                 if node["phase"] == "rebooting" and time.time() - (node["op_started"] or 0) < 8:
