@@ -140,7 +140,7 @@ ODIN's settings live in `/var/home/edgeop/.config`, which persists across every 
 
 1. **Project:** ODIN opens in its project manager. Create a project, for example `NTC ROTATION 27-01`, and open it.
 2. **Offline basemap:** press `Ctrl+N`, then `T`. Enter the URL `http://10.10.10.1:8000/services`, tick **ao**, and select it under Background Maps (`Ctrl+Shift+T`). Disable the default online layer.
-3. **Live ISR tracks:** click **+**, choose **Create Live Data Source**, and enter the URL `http://10.10.10.1:8080/live/tracks`. Use event type `message`, enable *Track features by ID*, and tick to connect.
+3. **Live ISR tracks:** click **+**, choose **Create Live Data Source**, and enter the URL `http://10.10.10.1:8080/live/tracks`. Use event type `message`, leave *Track features by ID* **unchecked**, and tick to connect. When it's checked, ODIN keeps every track it has ever received, so tracks that leave the sensor's view stay on the map and ODIN drifts out of sync with the ISR console.
 4. Pan to NTC Fort Irwin (35.26 N, 116.68 W). Optionally draw some friendly units, a phase line and an objective.
 
 **Save it as the standard profile and push it to the other nodes.** Run this on the control node:
@@ -253,7 +253,7 @@ The exit code is the number of failures, so `0` means ready to demo.
 | 1 | Nothing yet | "Two laptops, two mission roles. Each one's *entire OS* is a container image. The tablet is the only thing they talk to: no cloud, no internet." |
 | 2 | Point at the screens | ISR contacts sweep in on edge-b, and the same tracks appear in ODIN on edge-a. The **ISR → C2 FEED** panel reads **LIVE**. |
 | 3 | **DATA LINK → DDIL**. On edge-b select **STAGE ONLY**, then **C2 WORKSTATION**. | The card says *mission app still running*. Only the role layer crosses the link, and the MB counter shows it. If it's slow, switch to **FULL**: "comms restored". |
-| 4 | **APPLY STAGED** | edge-b reboots into C2 in about a minute. The feed drops to **NO SENSOR**: "we just traded away our sensor." |
+| 4 | **APPLY STAGED** (it lights up once staging has finished) | edge-b reboots into C2 in about a minute. The feed drops to **NO SENSOR**: "we just traded away our sensor." |
 | 5 | **SWAP ↺ ISR** on edge-b | Nothing downloads because the previous image is still on disk. The tracks return to ODIN. |
 | 6 | **DDIL** again. **REGISTRY → ISR v1.1**, then **UPDATE → v1.1** on edge-b. | A few KB over 1 Mbps. After the reboot the sweep is **amber**, visible proof the patch landed. |
 | 7 | *(optional)* **CUT** during a stage | The pull fails and the laptop keeps running its old image. Nothing is ever half-applied. |
@@ -320,7 +320,7 @@ In local preview it reads tiles and posts tracks to `localhost:8080`. Running `p
 | ODIN doesn't appear | The kiosk retries with `--no-sandbox` automatically. Check `journalctl --user -b` as the `edgeop` user. |
 | Blank map in ODIN, or a 404 from port 8000 | Run `curl http://10.10.10.1:8000/services`. If `ao` isn't listed, the tile server started before `tiles/ao.mbtiles` existed. It only scans at startup, so run `sudo systemctl restart edge-tiles`. |
 | ISR console says **NO LINK** | Run `systemctl status edge-command` on the tablet and check that port 8080 is open in firewalld. |
-| DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `/opt/edge-demo/demo.env`. To change it, re-run `setup-tablet.sh`. |
+| DDIL buttons error | Run `modprobe sch_netem` (from `kernel-modules-extra`) and check `LAN_IFACE` in `/opt/edge-demo/demo.env`. To change it, re-run `setup-tablet.sh`. If `modprobe` fails right after a fresh install, the module was built for a newer kernel than the one running: run `sudo dnf -y update`, reboot, and re-run `setup-tablet.sh`. |
 | Role switch fails (`rc=1`) with `dial tcp 10.10.10.1:5000: connect: connection refused`, mostly with VMs | libvirt's isolated network rejects podman's port forwarding, so the registry and tile containers now use host networking. Pull, then re-run `sudo ./tablet/setup-tablet.sh`, which reinstalls and restarts them. `check-tablet.sh` tests reachability from each edge node. |
 | `bootc switch` fails with a TLS error | The registry is plain HTTP. Rebuild base if you changed `REGISTRY` in `demo.env`. |
 
